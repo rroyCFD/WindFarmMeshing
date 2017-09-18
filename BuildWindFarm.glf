@@ -40,7 +40,7 @@ global terrainDB; set terrainDB [pw::DatabaseEntity getByName "Terrain-quilt"]
 set blkABL [pw::GridEntity getByName "ABL"]
 
 #-- Load wind turbine mesh
-set wtMesh "WindTower_3.pw"; #"SWiFT_Tower.pw"
+set wtMesh "WindTower_5.pw"; #"SWiFT_Tower.pw"
 # set wtMesh "SWiFT_tower_QuadFull_topOnly_V6.pw"
 
 pw::Application load [file join $cwd $wtMesh]

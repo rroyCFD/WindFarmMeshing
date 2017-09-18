@@ -134,11 +134,24 @@ puts "Model list: $modList \n\n"
 set wtMod [lindex $modList 0]
 set wtQuilts [GetQuilts $wtMod]
 
+
 # puts "WT database model: [$wtMod getName]"
 puts "WT database model: [$wtMod getName]"
 puts "WT database qulits:$wtQuilts"
 
+if {[catch {
+    set wtLowerQuilts [pw::Group getByName "WindTower_LowerQuilts"]
+    puts "WT database lower qulits:$wtLowerQuilts"
+} errmsg]} {
+    puts "ErrorMsg: $errmsg"
+    puts "ErrorCode: $errorCode"
+    puts "ErrorInfo:\n$errorInfo\n"
+} else {
+    puts "Lower quilts identified" 
+}
 
+
+exit
 
 # # Trim tower quilts and terrain quilt
 # #*** if the quilts doesn't intersect, trimBySurfaces doesn't work well
@@ -166,6 +179,7 @@ if {[catch {
     puts "Terrain to Wind Turbine tower trimming is performed" 
 }
 
+
 ## A checkpoint to observe whether the triming performed as intended
 pw::Display showLayer 1
 pw::Display setShowDomains 0
@@ -183,6 +197,9 @@ pw::DomainUnstructured setDefault EdgeMaximumLength 0.1
 set domsOnWT [pw::DomainUnstructured createOnDatabase -parametricConnectors Aligned -merge 0.05 -joinConnectors 30 -reject _TMP(unused) $wtMod]
 unset _TMP(unused)
 
+puts "Domains on wind turbine:   "
+puts $domsOnWT 
+PrintEntities $domsOnWT 
 #------------------------------------------------------------------------------------------#
 
 set mergeConns [pw::Application begin Merge]
@@ -269,13 +286,11 @@ if {[$domsBot(stage3) isValid] == 0} {
 	pw::Entity delete $domsBot(stage3)
 	set domsBot(stage3) [CreateUnsDom $botCons $cons(stage3) "reverse"]
 	}
-
+#http://www.pointwise.com/glyph2/files/Glyph/cxx/GlyphDomainUnstructured-cxx.html
 puts [pw::DomainUnstructured getInitializeInterior]
 
 PrintEntities $domsBot(stage3)
 
-
-exit
 
 #---------------------------------------------------------------------------------------#
 #Apply 2D T-Rex on stage_0 domain
@@ -292,10 +307,6 @@ unset mode2D_TRex
 unset wallBC_TRex
 
 puts "stage 0 domain: [$domsBot(stage0) getName]"
-
-
-
-exit
 
 
 #-------------------------------------------------------------------------------------- #
