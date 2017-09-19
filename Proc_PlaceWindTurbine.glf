@@ -61,8 +61,8 @@ foreach ent $tmpEnts {
     }
 }
 
-#PrintEntities $dom(Bot)
-#PrintEntities $freeCons
+# PrintEntities $dom(Bot)
+# PrintEntities $freeCons
 
 set domsFF [ListOperation $domsFF $dom(Bot) "subtract"]
 set botCons [ListOperation [GetConnectors $dom(Bot)] $freeCons "subtract"] 
@@ -74,12 +74,39 @@ pw::Entity delete [concat $blkLev1 $dom(Bot) $freeCons]
 
 
 puts "Current Position $currPos"
-#-- Paste the wind turbine 
-puts "wind-turbine entites: $entsWT"
-set entsList [PasteEntities $entsWT $currPos]
 
-puts "Pasted Entities: $entsList"
-puts "\n Tower $n pasted in desired location"
+#-- Paste the wind turbine 
+if {[catch {
+    puts "wind-turbine entites: $entsWT"
+    PrintEntities $entsWT
+    set entsList [PasteEntities $entsWT $currPos]
+    
+#     pw::Application clearClipboard
+#     pw::Application setClipboard $entsWT
+#     #[list $_DM(1) $_DB(1) $_CN(1) $_DB(2) $_CN(2) $_BL(1) $_DB(3) $_DM(2) $_CN(3) $_DB(4) $_CN(4) $_DB(5) $_CN(5) $_CN(6) $_DB(6) $_CN(7) $_DB(7) $_CN(8) $_DB(8) $_DB(9) $_CN(9) $_DB(10) $_DB(11) $_CN(10) $_DM(3) $_DB(12) $_DM(4) $_DM(5) $_DM(6) $_CN(11) $_DB(13) $_DM(7) $_CN(12) $_CN(13) $_DM(8) $_DM(9) $_DB(14) $_DB(15) $_DM(10) $_CN(14) $_CN(15) $_CN(16) $_CN(17) $_CN(18)]
+# 
+#     set _TMP(mode_1) [pw::Application begin Paste]
+#     set _TMP(PW_1) [$_TMP(mode_1) getEntities]
+#     set _TMP(mode_2) [pw::Application begin Modify $_TMP(PW_1)]
+#     pw::Entity transform [pwu::Transform translation {2000 1500 -0.1}] [$_TMP(mode_2) getEntities]
+#     $_TMP(mode_2) end
+#     unset _TMP(mode_2)
+#     $_TMP(mode_1) end
+#     unset _TMP(mode_1)
+#     unset _TMP(PW_1)
+    
+} errmsg]} {
+    puts "ErrorMsg: $errmsg"
+    puts "ErrorCode: $errorCode"
+    puts "ErrorInfo:\n$errorInfo\n"
+} else {
+    puts "Pasted Entities: $entsList"
+    puts "\n Tower $n pasted in desired location"
+}
+
+exit
+
+
 
 #-- Sort the pasted entities by entity-type (step 1 nad 2 could be merged, kept for future usability)
 # 1-- Create groups by type for pasted entities 
@@ -138,6 +165,7 @@ set wtQuilts [GetQuilts $wtMod]
 # puts "WT database model: [$wtMod getName]"
 puts "WT database model: [$wtMod getName]"
 puts "WT database qulits:$wtQuilts"
+
 
 if {[catch {
     set wtLowerQuilts [pw::Group getByName "WindTower_LowerQuilts"]

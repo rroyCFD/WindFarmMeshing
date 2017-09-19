@@ -40,7 +40,9 @@ global terrainDB; set terrainDB [pw::DatabaseEntity getByName "Terrain-quilt"]
 set blkABL [pw::GridEntity getByName "ABL"]
 
 #-- Load wind turbine mesh
-set wtMesh "WindTower_5.pw"; #"SWiFT_Tower.pw"
+
+# set wtMesh "WindTower_3.pw"; #"SWiFT_Tower.pw"
+set wtMesh "WindTower_5_noTRex.pw"; #"SWiFT_Tower.pw"
 # set wtMesh "SWiFT_tower_QuadFull_topOnly_V6.pw"
 
 pw::Application load [file join $cwd $wtMesh]
@@ -117,7 +119,8 @@ puts "suggested refinement factor: $refFactor"
 
 # Adopt these refinement level & factor suggestions
 set refinementFactor $refFactor
-global nLevel;  set nLevel $nNew   
+global nLevel;  #set nLevel $nNew
+set nLevel 2
 set refZone [list {20 20 10}]
 
 for {set l 1} {$l<$nLevel} {incr l} {
@@ -131,7 +134,7 @@ puts $refZone
 #---- Manual Entry
 # global refZone; set refZone [list {15 15 10} {30 30 20} {60 60 40}]; # {50 50 40}
 # global nLevel;  set nLevel [llength $refZone]
-puts "Total refineemnt levels: $nLevel"
+puts "Total refinement levels: $nLevel"
 
 
 #----****----****----****----****----****----****----****----****----****----#
@@ -321,6 +324,7 @@ puts "Entities in Wind Turbine Mesh: $entsWT\n\n"
 # for {set n 0} {$n<4} {incr n} { ;# $nSite
 #     set blkFiller1 [PlaceWindTurbine $n [lindex $blks $n]]
 # }
+
 
 # Place Wind Turbine meshes at desired locations and stich to Wind-farm mesh
 for {set n 0} {$n<$nSite} {incr n} {

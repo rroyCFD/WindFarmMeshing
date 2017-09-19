@@ -1519,7 +1519,7 @@ proc PasteEntities {ents2Copy pos} {
     $pasteMode end
     unset pasteMode
     
-    #pw::Application clearClipboard
+    pw::Application clearClipboard
     
     return $entsPasted
 }
