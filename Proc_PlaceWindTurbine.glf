@@ -79,22 +79,7 @@ puts "Current Position $currPos"
 if {[catch {
     puts "wind-turbine entites: $entsWT"
     PrintEntities $entsWT
-    set entsList [PasteEntities $entsWT $currPos]
-    
-#     pw::Application clearClipboard
-#     pw::Application setClipboard $entsWT
-#     #[list $_DM(1) $_DB(1) $_CN(1) $_DB(2) $_CN(2) $_BL(1) $_DB(3) $_DM(2) $_CN(3) $_DB(4) $_CN(4) $_DB(5) $_CN(5) $_CN(6) $_DB(6) $_CN(7) $_DB(7) $_CN(8) $_DB(8) $_DB(9) $_CN(9) $_DB(10) $_DB(11) $_CN(10) $_DM(3) $_DB(12) $_DM(4) $_DM(5) $_DM(6) $_CN(11) $_DB(13) $_DM(7) $_CN(12) $_CN(13) $_DM(8) $_DM(9) $_DB(14) $_DB(15) $_DM(10) $_CN(14) $_CN(15) $_CN(16) $_CN(17) $_CN(18)]
-# 
-#     set _TMP(mode_1) [pw::Application begin Paste]
-#     set _TMP(PW_1) [$_TMP(mode_1) getEntities]
-#     set _TMP(mode_2) [pw::Application begin Modify $_TMP(PW_1)]
-#     pw::Entity transform [pwu::Transform translation {2000 1500 -0.1}] [$_TMP(mode_2) getEntities]
-#     $_TMP(mode_2) end
-#     unset _TMP(mode_2)
-#     $_TMP(mode_1) end
-#     unset _TMP(mode_1)
-#     unset _TMP(PW_1)
-    
+    set entsList [PasteEntities $entsWT $currPos]    
 } errmsg]} {
     puts "ErrorMsg: $errmsg"
     puts "ErrorCode: $errorCode"
@@ -103,8 +88,6 @@ if {[catch {
     puts "Pasted Entities: $entsList"
     puts "\n Tower $n pasted in desired location"
 }
-
-exit
 
 
 
@@ -164,22 +147,9 @@ set wtQuilts [GetQuilts $wtMod]
 
 # puts "WT database model: [$wtMod getName]"
 puts "WT database model: [$wtMod getName]"
-puts "WT database qulits:$wtQuilts"
+puts "WT database qulits: "
+PrintEntities $wtQuilts
 
-
-if {[catch {
-    set wtLowerQuilts [pw::Group getByName "WindTower_LowerQuilts"]
-    puts "WT database lower qulits:$wtLowerQuilts"
-} errmsg]} {
-    puts "ErrorMsg: $errmsg"
-    puts "ErrorCode: $errorCode"
-    puts "ErrorInfo:\n$errorInfo\n"
-} else {
-    puts "Lower quilts identified" 
-}
-
-
-exit
 
 # # Trim tower quilts and terrain quilt
 # #*** if the quilts doesn't intersect, trimBySurfaces doesn't work well
@@ -212,6 +182,22 @@ if {[catch {
 pw::Display showLayer 1
 pw::Display setShowDomains 0
 
+
+# identify the lower quilts that intersect with the terrain
+if {[catch {
+   # set wtLowerQuilts [pw::Group getByName "WindTower_LowerQuilts"]
+    set wtLowerQuilts [list [pw::Database getByName "LowerX-1"] [pw::Database getByName "LowerX+-1"]]
+    puts "WT database lower qulits: "
+    PrintEntities $wtLowerQuilts
+} errmsg]} {
+    puts "ErrorMsg: $errmsg"
+    puts "ErrorCode: $errorCode"
+    puts "ErrorInfo:\n$errorInfo\n"
+} else {
+    puts "Lower quilts identified" 
+}
+
+# -------------------------------------------------------------------------------------------------------------------------#
 # Create Domain on Database Entties--------------------- #
 pw::DomainUnstructured setDefault Algorithm AdvancingFrontOrtho
 pw::DomainUnstructured setDefault IsoCellType TriangleQuad
@@ -222,17 +208,23 @@ pw::Connector setCalculateDimensionSpacing 0.1
 pw::DomainUnstructured setDefault EdgeMinimumLength 0.1
 pw::DomainUnstructured setDefault EdgeMaximumLength 0.1
 
-set domsOnWT [pw::DomainUnstructured createOnDatabase -parametricConnectors Aligned -merge 0.05 -joinConnectors 30 -reject _TMP(unused) $wtMod]
+# creating database on the whole model create domains on the wind turbine section too (which are created already and we don't need)
+# set domsOnWT [pw::DomainUnstructured createOnDatabase -parametricConnectors Aligned -merge 0.05 -joinConnectors 30 -reject _TMP(unused) $wtMod]
+
+# Only using lower quilts which are intersected with the terrain
+set domsOnWT [pw::DomainUnstructured createOnDatabase -parametricConnectors Aligned -merge 0.05 -joinConnectors 30 -reject _TMP(unused) $wtLowerQuilts]
 unset _TMP(unused)
 
 puts "Domains on wind turbine:   "
-puts $domsOnWT 
+#puts $domsOnWT 
 PrintEntities $domsOnWT 
-#------------------------------------------------------------------------------------------#
 
+#------------------------------------------------------------------------------------------#
+# Merge reduddant connectors
 set mergeConns [pw::Application begin Merge]
   $mergeConns findPairs -visibleOnly -tolerance 0.005 -exclude None Connector
   if {[$mergeConns getPairCount]>0} {
+    PrintEntities $mergeConns
     $mergeConns setPairStatus 1 TRUE
     $mergeConns mergePairs
     }
@@ -267,7 +259,7 @@ foreach con $consWT {
 }
 unset con
 
-
+# Free connectors are at the bottom (only 1 domain assoaciated)
 puts "Free Connectors"
 PrintEntities $consFree 
 puts ""
@@ -336,7 +328,6 @@ unset wallBC_TRex
 
 puts "stage 0 domain: [$domsBot(stage0) getName]"
 
-
 #-------------------------------------------------------------------------------------- #
 # Find Match-type Domains      
 set nonManifoldDoms [FlattenList $nonManifoldDoms]
@@ -348,7 +339,7 @@ foreach _dom $nonManifoldDoms {
         set _blk [pw::Block getBlocksFromDomains $_dom]
         #puts [$_blk getName]; puts [$_dom getName]
         
-        if {[ string match "Match*" [[pw::TRexCondition getByEntities [list $_blk $_dom]] getType]]} {
+        if {[ string match "Match*" [[pw::TRexCondition getByEntities [list $_blk $_dom]] getConditionType]]} {
             lappend matchDomains $_dom
         }
         unset _blk
@@ -365,8 +356,9 @@ PrintEntities $matchDomains
 set domsBuffer [list ]
 set domsTemp [pw::Layer getLayerEntities -type pw::Domain $currLayer]
 
-puts "Buffer block domains"
 
+# find the buffer block domains
+puts "Finding buffer block domains....."
 foreach _dom $domsTemp {
     set _blk [pw::Block getBlocksFromDomains $_dom]
     set nBlk  [llength $_blk]
@@ -376,13 +368,20 @@ foreach _dom $domsTemp {
         lappend domsBuffer $_dom
     } elseif {$nBlk == 1} {
         # discard wall type domains
-        if {![ string match "Wall*" [[pw::TRexCondition getByEntities [list $_blk $_dom]] getType]]} {
+        if {![ string match "Wall*" [[pw::TRexCondition getByEntities [list $_blk $_dom]] getConditionType]]} {
+            
             lappend domsBuffer $_dom
+            puts "TRex condition not wall"
+            puts "Type: [[pw::TRexCondition getByEntities [list $_blk $_dom]] getConditionType]"
+            PrintEntities $_dom
         } 
     }
 }
 unset _blk _dom domsTemp nBlk
+
 puts "length of buffer domains [llength $domsBuffer] "
+puts "Buffer block domains:"
+PrintEntities $domsBuffer
 
 
 #-- Create buffer block

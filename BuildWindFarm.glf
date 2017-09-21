@@ -121,7 +121,7 @@ puts "suggested refinement factor: $refFactor"
 set refinementFactor $refFactor
 global nLevel;  #set nLevel $nNew
 set nLevel 2
-set refZone [list {20 20 10}]
+set refZone [list {20 20 10.1}]
 
 for {set l 1} {$l<$nLevel} {incr l} {
     puts [lindex $refZone [expr {$l-1}]] 
