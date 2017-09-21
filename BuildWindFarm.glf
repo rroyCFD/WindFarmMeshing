@@ -21,7 +21,7 @@ set cwd [file dirname [info script]]
 puts "Current working dictionary: $cwd"
 # Load wind Turbine sites
 # set siteInfo "sitingPositions_1pos.dat"
-set siteInfo "sitingPositions_1pos.dat"
+set siteInfo "sitingPositions_2pos.dat"
 # set siteInfo "sitingPositions_10posScatter.dat"
 # set siteInfo "sitingPositions_14posScatter.dat"
 
@@ -119,8 +119,9 @@ puts "suggested refinement factor: $refFactor"
 
 # Adopt these refinement level & factor suggestions
 set refinementFactor $refFactor
-global nLevel;  #set nLevel $nNew
-set nLevel 2
+global nLevel;  
+set nLevel $nNew
+#set nLevel 2
 set refZone [list {20 20 10.1}]
 
 for {set l 1} {$l<$nLevel} {incr l} {

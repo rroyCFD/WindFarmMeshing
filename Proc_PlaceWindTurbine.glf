@@ -186,7 +186,17 @@ pw::Display setShowDomains 0
 # identify the lower quilts that intersect with the terrain
 if {[catch {
    # set wtLowerQuilts [pw::Group getByName "WindTower_LowerQuilts"]
-    set wtLowerQuilts [list [pw::Database getByName "LowerX-1"] [pw::Database getByName "LowerX+-1"]]
+    #set wtLowerQuilts [list [pw::Database getByName "Lower-X-1"] [pw::Database getByName "Lower+X-1"]]
+    set strN [format "%s" [expr {$n + 1}]]
+    set strPos "Lower+X-"
+    set strNeg "Lower-X-"
+    
+    append strPos $strN
+    append strNeg $strN
+    puts $strPos
+    puts $strNeg
+    
+    set wtLowerQuilts [list [pw::Database getByName $strNeg] [pw::Database getByName $strPos]]
     puts "WT database lower qulits: "
     PrintEntities $wtLowerQuilts
 } errmsg]} {
